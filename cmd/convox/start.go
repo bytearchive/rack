@@ -36,12 +36,6 @@ func init() {
 			},
 		},
 	})
-	stdcli.RegisterCommand(cli.Command{
-		Name:        "init",
-		Description: "initialize an app for local development",
-		Usage:       "[directory]",
-		Action:      cmdInit,
-	})
 }
 
 func cmdStart(c *cli.Context) {
@@ -65,14 +59,12 @@ func cmdStart(c *cli.Context) {
 	m, err := manifest.Read(dir, file)
 
 	if err != nil {
-		changes, err := manifest.Init(dir)
+		err := initApplication(dir)
 
 		if err != nil {
 			stdcli.Error(err)
 			return
 		}
-
-		fmt.Printf("Generated: %s\n", strings.Join(changes, ", "))
 
 		m, err = manifest.Read(dir, file)
 
@@ -198,30 +190,4 @@ func run(command string, args ...string) error {
 	}
 
 	return nil
-}
-
-func cmdInit(c *cli.Context) {
-	wd := "."
-
-	if len(c.Args()) > 0 {
-		wd = c.Args()[0]
-	}
-
-	dir, _, err := stdcli.DirApp(c, wd)
-
-	if err != nil {
-		stdcli.Error(err)
-		return
-	}
-
-	changed, err := manifest.Init(dir)
-
-	if err != nil {
-		stdcli.Error(err)
-		return
-	}
-
-	if len(changed) > 0 {
-		fmt.Printf("Generated: %s\n", strings.Join(changed, ", "))
-	}
 }
