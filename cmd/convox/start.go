@@ -59,7 +59,7 @@ func cmdStart(c *cli.Context) {
 	m, err := manifest.Read(dir, file)
 
 	if err != nil {
-		err := initApplication(dir)
+		err := manifest.Init(dir)
 
 		if err != nil {
 			stdcli.Error(err)
