@@ -87,31 +87,31 @@ func init() {
 			cli.StringFlag{
 				Name:  "ami",
 				Value: "",
-				Usage: "custom AMI for rack instances",
+				Usage: "ID of the Amazon Machine Image to install",
 			},
 			cli.BoolFlag{
 				Name:  "dedicated",
 				Usage: "create EC2 instances on dedicated hardware",
 			},
 			cli.StringFlag{
+				Name:  "existing-gateway",
+				Value: "",
+				Usage: "existing gateway",
+			},
+			cli.StringFlag{
 				Name:  "existing-vpc",
 				Value: "",
 				Usage: "existing vpc to use for rack instances",
 			},
-			cli.StringFlag{
-				Name:  "existing-subnets",
-				Value: "",
-				Usage: "subnets for existing VPC (specify 3)",
-			},
 			cli.IntFlag{
 				Name:  "instance-count",
 				Value: 3,
-				Usage: "number of instances in the rack",
+				Usage: "number of EC2 instances (must be greater than 1)",
 			},
 			cli.StringFlag{
 				Name:  "instance-type",
 				Value: "t2.small",
-				Usage: "type of instances in the rack",
+				Usage: "type of EC2 instances",
 			},
 			cli.BoolFlag{
 				Name:  "private",
@@ -125,20 +125,20 @@ func init() {
 			cli.StringFlag{
 				Name:   "region",
 				Value:  "us-east-1",
-				Usage:  "aws region",
+				Usage:  "aws region to install in",
 				EnvVar: "AWS_REGION",
 			},
 			cli.StringFlag{
 				Name:   "stack-name",
 				EnvVar: "STACK_NAME",
 				Value:  "convox",
-				Usage:  "custom rack name",
+				Usage:  "name of the CloudFormation stack",
 			},
 			cli.StringFlag{
 				Name:   "version",
 				EnvVar: "VERSION",
 				Value:  "latest",
-				Usage:  "install a specific version",
+				Usage:  "release version in the format of '20150810161818', or 'latest' by default",
 			},
 			cli.StringFlag{
 				Name:  "vpc-cidr",
@@ -223,17 +223,14 @@ func cmdInstall(c *cli.Context) error {
 		subnetPrivate2CIDR = parts[2]
 	}
 
-	var existingVPC, existingSubnets string
-
+	var existingVPC string
 	if vpc := c.String("existing-vpc"); vpc != "" {
 		existingVPC = vpc
+	}
 
-		parts := strings.SplitN(c.String("existing-subnets"), ",", 3)
-		if len(parts) < 3 {
-			return stdcli.ExitError(fmt.Errorf("existing-subnets must have 3 values"))
-		}
-
-		existingSubnets = c.String("existing-subnets")
+	var existingGateway string
+	if gateway := c.String("existing-gateway"); gateway != "" {
+		existingGateway = gateway
 	}
 
 	development := "No"
@@ -339,8 +336,8 @@ func cmdInstall(c *cli.Context) error {
 			&cloudformation.Parameter{ParameterKey: aws.String("Ami"), ParameterValue: aws.String(ami)},
 			&cloudformation.Parameter{ParameterKey: aws.String("ClientId"), ParameterValue: aws.String(distinctID)},
 			&cloudformation.Parameter{ParameterKey: aws.String("Development"), ParameterValue: aws.String(development)},
-			&cloudformation.Parameter{ParameterKey: aws.String("ExistingSubnets"), ParameterValue: aws.String(existingSubnets)},
 			&cloudformation.Parameter{ParameterKey: aws.String("ExistingVpc"), ParameterValue: aws.String(existingVPC)},
+			&cloudformation.Parameter{ParameterKey: aws.String("ExistingGateway"), ParameterValue: aws.String(existingGateway)},
 			&cloudformation.Parameter{ParameterKey: aws.String("InstanceCount"), ParameterValue: aws.String(instanceCount)},
 			&cloudformation.Parameter{ParameterKey: aws.String("InstanceType"), ParameterValue: aws.String(instanceType)},
 			&cloudformation.Parameter{ParameterKey: aws.String("Key"), ParameterValue: aws.String(key)},

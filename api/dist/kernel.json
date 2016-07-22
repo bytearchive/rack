@@ -125,18 +125,7 @@
     },
     "Subnets": {
       "Condition": "Development",
-      "Value": { "Fn::Join": [ ",", { "Fn::If": [ "BlankExistingVpc",
-        [
-          { "Ref": "Subnet0" },
-          { "Ref": "Subnet1" },
-          { "Ref": "Subnet2" }
-        ],
-        [
-          { "Fn::Select": [ 0, { "Ref": "ExistingSubnets" } ] },
-          { "Fn::Select": [ 1, { "Ref": "ExistingSubnets" } ] },
-          { "Fn::Select": [ 2, { "Ref": "ExistingSubnets" } ] }
-        ]
-      ] } ] }
+      "Value": { "Fn::Join": [ ",", [ { "Ref": "Subnet0" }, { "Ref": "Subnet1" }, { "Ref": "Subnet2" } ] ] }
     },
     "SubnetsPrivate": {
       "Condition": "Development",
@@ -216,10 +205,10 @@
       "Default": "Yes",
       "AllowedValues": [ "Yes", "No" ]
     },
-    "ExistingSubnets": {
+    "ExistingGateway": {
       "Default": "",
-      "Description": "Existing VPC Subnets",
-      "Type": "List<String>"
+      "Description": "Existing Gateway ID",
+      "Type": "String"
     },
     "ExistingVpc": {
       "Default": "",
@@ -578,12 +567,15 @@
       }
     },
     "GatewayAttachment": {
-      "DependsOn": [ "Gateway", "Vpc" ],
+      "DependsOn": [ "Gateway" ],
       "Type": "AWS::EC2::VPCGatewayAttachment",
       "Condition": "BlankExistingVpc",
       "Properties": {
         "InternetGatewayId": { "Ref": "Gateway" },
-        "VpcId": { "Ref": "Vpc" }
+        "VpcId": { "Fn::If": [ "BlankExistingVpc",
+          { "Ref": "Vpc" },
+          { "Ref": "ExistingVpc" }
+        ] }
       }
     },
     "NatGateway0": {
@@ -635,47 +627,53 @@
       }
     },
     "Subnet0": {
-      "DependsOn": [ "AvailabilityZones", "Vpc" ],
+      "DependsOn": [ "AvailabilityZones" ],
       "Type": "AWS::EC2::Subnet",
-      "Condition": "BlankExistingVpc",
       "Properties": {
         "Tags": [
           {"Key": "Name", "Value": { "Fn::Join": [ " ", [ {"Ref": "AWS::StackName"}, "public", "0" ] ] }}
         ],
         "AvailabilityZone": { "Fn::GetAtt": [ "AvailabilityZones", "AvailabilityZone0" ] },
         "CidrBlock": { "Ref": "Subnet0CIDR" },
-        "VpcId": { "Ref": "Vpc" }
+        "VpcId": { "Fn::If": [ "BlankExistingVpc",
+          { "Ref": "Vpc" },
+          { "Ref": "ExistingVpc" }
+        ] }
       }
     },
     "Subnet1": {
-      "DependsOn": [ "AvailabilityZones", "Vpc" ],
+      "DependsOn": [ "AvailabilityZones" ],
       "Type": "AWS::EC2::Subnet",
-      "Condition": "BlankExistingVpc",
       "Properties": {
         "Tags": [
           {"Key": "Name", "Value": { "Fn::Join": [ " ", [ {"Ref": "AWS::StackName"}, "public", "1" ] ] }}
         ],
         "AvailabilityZone": { "Fn::GetAtt": [ "AvailabilityZones", "AvailabilityZone1" ] },
         "CidrBlock": { "Ref": "Subnet1CIDR" },
-        "VpcId": { "Ref": "Vpc" }
+        "VpcId": { "Fn::If": [ "BlankExistingVpc",
+          { "Ref": "Vpc" },
+          { "Ref": "ExistingVpc" }
+        ] }
       }
     },
     "Subnet2": {
-      "DependsOn": [ "AvailabilityZones", "Vpc" ],
+      "DependsOn": [ "AvailabilityZones" ],
       "Type": "AWS::EC2::Subnet",
-      "Condition": "BlankExistingVpc",
       "Properties": {
         "Tags": [
           {"Key": "Name", "Value": { "Fn::Join": [ " ", [ {"Ref": "AWS::StackName"}, "public", "2" ] ] }}
         ],
         "AvailabilityZone": { "Fn::GetAtt": [ "AvailabilityZones", "AvailabilityZone2" ] },
         "CidrBlock": { "Ref": "Subnet2CIDR" },
-        "VpcId": { "Ref": "Vpc" }
+        "VpcId": { "Fn::If": [ "BlankExistingVpc",
+          { "Ref": "Vpc" },
+          { "Ref": "ExistingVpc" }
+        ] }
       }
     },
     "SubnetPrivate0": {
       "Condition": "Private",
-      "DependsOn": [ "AvailabilityZones", "Vpc" ],
+      "DependsOn": [ "AvailabilityZones" ],
       "Type": "AWS::EC2::Subnet",
       "Properties": {
         "Tags": [
@@ -683,12 +681,15 @@
         ],
         "AvailabilityZone": { "Fn::GetAtt": [ "AvailabilityZones", "AvailabilityZone0" ] },
         "CidrBlock": { "Ref": "SubnetPrivate0CIDR" },
-        "VpcId": { "Ref": "Vpc" }
+        "VpcId": { "Fn::If": [ "BlankExistingVpc",
+          { "Ref": "Vpc" },
+          { "Ref": "ExistingVpc" }
+        ] }
       }
     },
     "SubnetPrivate1": {
       "Condition": "Private",
-      "DependsOn": [ "AvailabilityZones", "Vpc" ],
+      "DependsOn": [ "AvailabilityZones" ],
       "Type": "AWS::EC2::Subnet",
       "Properties": {
         "Tags": [
@@ -696,12 +697,15 @@
         ],
         "AvailabilityZone": { "Fn::GetAtt": [ "AvailabilityZones", "AvailabilityZone1" ] },
         "CidrBlock": { "Ref": "SubnetPrivate1CIDR" },
-        "VpcId": { "Ref": "Vpc" }
+        "VpcId": { "Fn::If": [ "BlankExistingVpc",
+          { "Ref": "Vpc" },
+          { "Ref": "ExistingVpc" }
+        ] }
       }
     },
     "SubnetPrivate2": {
       "Condition": "Private",
-      "DependsOn": [ "AvailabilityZones", "Vpc" ],
+      "DependsOn": [ "AvailabilityZones" ],
       "Type": "AWS::EC2::Subnet",
       "Properties": {
         "Tags": [
@@ -709,49 +713,61 @@
         ],
         "AvailabilityZone": { "Fn::GetAtt": [ "AvailabilityZones", "AvailabilityZone2" ] },
         "CidrBlock": { "Ref": "SubnetPrivate2CIDR" },
-        "VpcId": { "Ref": "Vpc" }
+        "VpcId": { "Fn::If": [ "BlankExistingVpc",
+          { "Ref": "Vpc" },
+          { "Ref": "ExistingVpc" }
+        ] }
       }
     },
     "Routes": {
-      "DependsOn": [ "Gateway", "GatewayAttachment", "Vpc" ],
       "Type": "AWS::EC2::RouteTable",
-      "Condition": "BlankExistingVpc",
       "Properties": {
-        "VpcId": { "Ref": "Vpc" }
+        "VpcId": { "Fn::If": [ "BlankExistingVpc",
+          { "Ref": "Vpc" },
+          { "Ref": "ExistingVpc" }
+        ] }
       }
     },
     "RouteDefault": {
-      "DependsOn": [ "Gateway", "GatewayAttachment", "Routes" ],
+      "DependsOn": [ "Routes" ],
       "Type": "AWS::EC2::Route",
-      "Condition": "BlankExistingVpc",
       "Properties": {
         "DestinationCidrBlock": "0.0.0.0/0",
-        "GatewayId": { "Ref": "Gateway" },
+        "GatewayId": { "Ref": "ExistingGateway" },
         "RouteTableId": { "Ref": "Routes" }
       }
     },
     "RoutesPrivate0": {
       "Condition": "Private",
-      "DependsOn": [ "NatGateway0", "Vpc" ],
+      "DependsOn": [ "NatGateway0" ],
       "Type": "AWS::EC2::RouteTable",
       "Properties": {
-        "VpcId": { "Ref": "Vpc" }
+        "VpcId": { "Fn::If": [ "BlankExistingVpc",
+          { "Ref": "Vpc" },
+          { "Ref": "ExistingVpc" }
+        ] }
       }
     },
     "RoutesPrivate1": {
       "Condition": "Private",
-      "DependsOn": [ "NatGateway1", "Vpc" ],
+      "DependsOn": [ "NatGateway1" ],
       "Type": "AWS::EC2::RouteTable",
       "Properties": {
-        "VpcId": { "Ref": "Vpc" }
+        "VpcId": { "Fn::If": [ "BlankExistingVpc",
+          { "Ref": "Vpc" },
+          { "Ref": "ExistingVpc" }
+        ] }
       }
     },
     "RoutesPrivate2": {
       "Condition": "Private",
-      "DependsOn": [ "NatGateway2", "Vpc" ],
+      "DependsOn": [ "NatGateway2" ],
       "Type": "AWS::EC2::RouteTable",
       "Properties": {
-        "VpcId": { "Ref": "Vpc" }
+        "VpcId": { "Fn::If": [ "BlankExistingVpc",
+          { "Ref": "Vpc" },
+          { "Ref": "ExistingVpc" }
+        ] }
       }
     },
     "RoutePrivateDefault0": {
@@ -788,27 +804,24 @@
       }
     },
     "Subnet0Routes": {
-      "DependsOn": [ "Subnet0", "Routes" ],
+      "DependsOn": [ "Subnet0" ],
       "Type": "AWS::EC2::SubnetRouteTableAssociation",
-      "Condition": "BlankExistingVpc",
       "Properties": {
         "SubnetId": { "Ref": "Subnet0" },
         "RouteTableId": { "Ref": "Routes" }
       }
     },
     "Subnet1Routes": {
-      "DependsOn": [ "Subnet1", "Routes" ],
+      "DependsOn": [ "Subnet1" ],
       "Type": "AWS::EC2::SubnetRouteTableAssociation",
-      "Condition": "BlankExistingVpc",
       "Properties": {
         "SubnetId": { "Ref": "Subnet1" },
         "RouteTableId": { "Ref": "Routes" }
       }
     },
     "Subnet2Routes": {
-      "DependsOn": [ "Subnet2", "Routes" ],
+      "DependsOn": [ "Subnet2" ],
       "Type": "AWS::EC2::SubnetRouteTableAssociation",
-      "Condition": "BlankExistingVpc",
       "Properties": {
         "SubnetId": { "Ref": "Subnet2" },
         "RouteTableId": { "Ref": "Routes" }
@@ -1011,7 +1024,7 @@
       }
     },
     "Instances": {
-      "DependsOn": [ "AvailabilityZones" ],
+      "DependsOn": [ "AvailabilityZones", "Subnet0", "Subnet1", "Subnet2" ],
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties" : {
         "LaunchConfigurationName" : { "Ref": "LaunchConfiguration" },
@@ -1020,23 +1033,18 @@
           { "Fn::GetAtt": [ "AvailabilityZones", "AvailabilityZone1" ] },
           { "Fn::GetAtt": [ "AvailabilityZones", "AvailabilityZone2" ] }
         ],
-        "VPCZoneIdentifier": {
-          "Fn::If": [ "ExistingVpc", [
-            { "Fn::Select": [ 0, { "Ref": "ExistingSubnets" } ] },
-            { "Fn::Select": [ 1, { "Ref": "ExistingSubnets" } ] },
-            { "Fn::Select": [ 2, { "Ref": "ExistingSubnets" } ] }
-          ], {
-            "Fn::If": [ "Private", [
-              { "Ref": "SubnetPrivate0" },
-              { "Ref": "SubnetPrivate1" },
-              { "Ref": "SubnetPrivate2" }
-            ], [
-              { "Ref": "Subnet0" },
-              { "Ref": "Subnet1" },
-              { "Ref": "Subnet2" }
-            ] ]
-          } ]
-        },
+        "VPCZoneIdentifier": { "Fn::If": [ "Private",
+          [
+            { "Ref": "SubnetPrivate0" },
+            { "Ref": "SubnetPrivate1" },
+            { "Ref": "SubnetPrivate2" }
+          ],
+          [
+            { "Ref": "Subnet0" },
+            { "Ref": "Subnet1" },
+            { "Ref": "Subnet2" }
+          ]
+        ] },
         "Cooldown": 5,
         "DesiredCapacity": { "Ref": "InstanceCount" },
         "HealthCheckType": "EC2",
@@ -1324,23 +1332,18 @@
             "Ref": "BalancerSecurityGroup"
           }
         ],
-        "Subnets": {
-          "Fn::If": [ "ExistingVpc", [
-            { "Fn::Select": [ 0, { "Ref": "ExistingSubnets" } ] },
-            { "Fn::Select": [ 1, { "Ref": "ExistingSubnets" } ] },
-            { "Fn::Select": [ 2, { "Ref": "ExistingSubnets" } ] }
-          ], {
-            "Fn::If": [ "Private", [
-              { "Ref": "SubnetPrivate0" },
-              { "Ref": "SubnetPrivate1" },
-              { "Ref": "SubnetPrivate2" }
-            ], [
-              { "Ref": "Subnet0" },
-              { "Ref": "Subnet1" },
-              { "Ref": "Subnet2" }
-            ] ]
-          } ]
-        }
+        "Subnets": { "Fn::If": [ "PrivateApi",
+          [
+            { "Ref": "SubnetPrivate0" },
+            { "Ref": "SubnetPrivate1" },
+            { "Ref": "SubnetPrivate2" }
+          ],
+          [
+            { "Ref": "Subnet0" },
+            { "Ref": "Subnet1" },
+            { "Ref": "Subnet2" }
+          ]
+        ] }
       },
       "Type": "AWS::ElasticLoadBalancing::LoadBalancer"
     },
@@ -1537,7 +1540,10 @@
         "SecurityGroupIngress": [
           { "IpProtocol": "tcp", "FromPort": "2049", "ToPort": "2049", "CidrIp": { "Ref": "VPCCIDR" } }
         ],
-        "VpcId": { "Ref": "Vpc" }
+        "VpcId": { "Fn::If": [ "BlankExistingVpc",
+          { "Ref": "Vpc" },
+          { "Ref": "ExistingVpc" }
+        ] }
       }
     },
     "VolumeTarget0": {
@@ -1587,7 +1593,7 @@
       "Type": "AWS::S3::Bucket"
     },
     "ApiWebTasks": {
-      "DependsOn": [ "Balancer", "Cluster", "CustomTopic", "DynamoBuilds", "DynamoReleases", "KernelAccess", "LogGroup", "RegistryAccess", "RegistryBucket" ],
+      "DependsOn": [ "Balancer", "Cluster", "CustomTopic", "DynamoBuilds", "DynamoReleases", "KernelAccess", "LogGroup", "RegistryAccess", "RegistryBucket", "Subnet0", "Subnet1", "Subnet2" ],
       "Properties": {
         "Name": { "Fn::Join": [ "-", [ { "Ref": "AWS::StackName" }, "web" ] ] },
         "ServiceToken": { "Fn::GetAtt": [ "CustomTopic", "Arn" ] },
@@ -1626,14 +1632,7 @@
               "SEGMENT_WRITE_KEY": "KLvwCXo6qcTmQHLpF69DEwGf9zh7lt9i",
               "SETTINGS_BUCKET": { "Ref": "Settings" },
               "STACK_ID": { "Ref": "AWS::StackId" },
-              "SUBNETS": { "Fn::If": [ "BlankExistingVpc",
-                { "Fn::Join": [ ",", [ { "Ref": "Subnet0" }, { "Ref": "Subnet1" }, { "Ref": "Subnet2" } ] ] },
-                { "Fn::Join": [ ",", [
-                  { "Fn::Select": [ 0, { "Ref": "ExistingSubnets" } ] },
-                  { "Fn::Select": [ 1, { "Ref": "ExistingSubnets" } ] },
-                  { "Fn::Select": [ 2, { "Ref": "ExistingSubnets" } ] }
-                ] ] }
-              ] },
+              "SUBNETS": { "Fn::Join": [ ",", [ { "Ref": "Subnet0" }, { "Ref": "Subnet1" }, { "Ref": "Subnet2" } ] ] },
               "SUBNETS_PRIVATE": { "Fn::If": [ "Private",
                 { "Fn::Join": [ ",", [ { "Ref": "SubnetPrivate0" }, { "Ref": "SubnetPrivate1" }, { "Ref": "SubnetPrivate2" } ] ] },
                 ""
@@ -1688,7 +1687,7 @@
       "Version": "1.0"
     },
     "ApiMonitorTasks": {
-      "DependsOn": [ "Balancer", "Cluster", "CustomTopic", "DynamoBuilds", "DynamoReleases", "KernelAccess", "LogGroup" ],
+      "DependsOn": [ "Balancer", "Cluster", "CustomTopic", "DynamoBuilds", "DynamoReleases", "KernelAccess", "LogGroup", "Subnet0", "Subnet1", "Subnet2" ],
       "Properties": {
         "Name": { "Fn::Join": [ "-", [ { "Ref": "AWS::StackName" }, "monitor" ] ] },
         "ServiceToken": { "Fn::GetAtt": [ "CustomTopic", "Arn" ] },
@@ -1727,14 +1726,7 @@
               "ROLLBAR_TOKEN": "f67f25b8a9024d5690f997bd86bf14b0",
               "SEGMENT_WRITE_KEY": "KLvwCXo6qcTmQHLpF69DEwGf9zh7lt9i",
               "STACK_ID": { "Ref": "AWS::StackId" },
-              "SUBNETS": { "Fn::If": [ "BlankExistingVpc",
-                { "Fn::Join": [ ",", [ { "Ref": "Subnet0" }, { "Ref": "Subnet1" }, { "Ref": "Subnet2" } ] ] },
-                { "Fn::Join": [ ",", [
-                  { "Fn::Select": [ 0, { "Ref": "ExistingSubnets" } ] },
-                  { "Fn::Select": [ 1, { "Ref": "ExistingSubnets" } ] },
-                  { "Fn::Select": [ 2, { "Ref": "ExistingSubnets" } ] }
-                ] ] }
-              ] },
+              "SUBNETS": { "Fn::Join": [ ",", [ { "Ref": "Subnet0" }, { "Ref": "Subnet1" }, { "Ref": "Subnet2" } ] ] },
               "SUBNETS_PRIVATE": { "Fn::If": [ "Private",
                 { "Fn::Join": [ ",", [ { "Ref": "SubnetPrivate0" }, { "Ref": "SubnetPrivate1" }, { "Ref": "SubnetPrivate2" } ] ] },
                 ""
