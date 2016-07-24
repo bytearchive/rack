@@ -103,6 +103,11 @@ func init() {
 				Value: "",
 				Usage: "3 existing subnet ids to be used by rack. eg. subnet-4a26ea3c,subnet-4a26ea3d,subnet-4a26ea3e",
 			},
+			cli.StringFlag{
+				Name:  "existing-subnets-private",
+				Value: "",
+				Usage: "3 existing private subnet ids to be used by rack. eg. subnet-6a26ea3c,subnet-6a26ea3d,subnet-6a26ea3e",
+			},
 			cli.IntFlag{
 				Name:  "instance-count",
 				Value: 3,
@@ -223,7 +228,7 @@ func cmdInstall(c *cli.Context) error {
 		subnetPrivate2CIDR = parts[2]
 	}
 
-	var existingVPC, existingSubnets string
+	var existingVPC, existingSubnets, existingSubnetsPrivate string
 
 	if vpc := c.String("existing-vpc"); vpc != "" {
 		existingVPC = vpc
@@ -234,6 +239,13 @@ func cmdInstall(c *cli.Context) error {
 		}
 
 		existingSubnets = c.String("existing-subnets")
+
+		parts = strings.SplitN(c.String("existing-subnets-private"), ",", 3)
+		if len(parts) < 3 {
+			return stdcli.ExitError(fmt.Errorf("existing-subnets-private must have 3 values"))
+		}
+
+		existingSubnetsPrivate = c.String("existing-subnets-private")
 	}
 
 	development := "No"
@@ -340,6 +352,7 @@ func cmdInstall(c *cli.Context) error {
 			&cloudformation.Parameter{ParameterKey: aws.String("ClientId"), ParameterValue: aws.String(distinctID)},
 			&cloudformation.Parameter{ParameterKey: aws.String("Development"), ParameterValue: aws.String(development)},
 			&cloudformation.Parameter{ParameterKey: aws.String("ExistingSubnets"), ParameterValue: aws.String(existingSubnets)},
+			&cloudformation.Parameter{ParameterKey: aws.String("ExistingSubnetsPrivate"), ParameterValue: aws.String(existingSubnetsPrivate)},
 			&cloudformation.Parameter{ParameterKey: aws.String("ExistingVpc"), ParameterValue: aws.String(existingVPC)},
 			&cloudformation.Parameter{ParameterKey: aws.String("InstanceCount"), ParameterValue: aws.String(instanceCount)},
 			&cloudformation.Parameter{ParameterKey: aws.String("InstanceType"), ParameterValue: aws.String(instanceType)},
